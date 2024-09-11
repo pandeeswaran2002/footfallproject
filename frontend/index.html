@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footfall Data Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        form {
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            padding: 15px;
+            border: 1px solid #dfe6e9;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+
+        input, button {
+            padding: 10px;
+            margin-top: 5px;
+            margin-right: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        pre {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border: 1px solid #dfe6e9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Footfall Data Management</h1>
+
+    <!-- Create Footfall Data -->
+    <h2>Create Footfall Data</h2>
+    <form id="createForm">
+        <input type="number" id="cameraID" placeholder="Camera ID" required>
+        <input type="text" id="zone" placeholder="Zone" required>
+        <button type="submit">Create Footfall Data</button>
+    </form>
+
+    <!-- Update Footfall Data -->
+    <h2>Update Footfall Data</h2>
+    <form id="updateForm">
+        <input type="number" id="updateCameraID" placeholder="Camera ID" required>
+        <button type="submit">Increment Count</button>
+    </form>
+
+    <!-- Add Footfall Data -->
+    <h2>Add Footfall Count</h2>
+    <form id="addForm">
+        <input type="number" id="addCameraID" placeholder="Camera ID" required>
+        <input type="number" id="countToAdd" placeholder="Count to Add" required>
+        <button type="submit">Add Footfall Count</button>
+    </form>
+
+    <!-- Retrieve All Footfall Data -->
+    <h2>Retrieve All Footfall Data</h2>
+    <button id="getAllFootfalls">Get All Footfall Data</button>
+    <table id="footfallTable">
+        <thead>
+            <tr>
+                <th>Camera ID</th>
+                <th>Date</th>
+                <th>Zone</th>
+                <th>Count</th>
+                <th>Footfalls</th>
+            </tr>
+        </thead>
+        <tbody id="footfallData"></tbody>
+    </table>
+
+    <!-- Delete Footfall Data -->
+    <h2>Delete Footfall Data</h2>
+    <form id="deleteForm">
+        <input type="number" id="deleteCameraID" placeholder="Camera ID" required>
+        <button type="submit">Delete Footfall Data</button>
+    </form>
+
+    <!-- Get Footfall Count by Time Range -->
+    <h2>Get Footfall Count by Time Range</h2>
+    <form id="countByTimeForm">
+        <input type="date" id="queryDate" required>
+        <input type="number" id="startTime" placeholder="Start Hour (0-23)" min="0" max="23" required>
+        <input type="number" id="endTime" placeholder="End Hour (0-23)" min="0" max="23" required>
+        <button type="submit">Get Count by Time Range</button>
+    </form>
+    <table id="timeRangeTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody id="timeRangeCount"></tbody>
+    </table>
+
+    <!-- Get Footfall Count by Date -->
+    <h2>Get Footfall Count by Date</h2>
+    <form id="countByDateForm">
+        <input type="date" id="queryDateForCount" required>
+        <button type="submit">Get Count by Date</button>
+    </form>
+    <table id="dateCountTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody id="dateCount"></tbody>
+    </table>
+
+    <script>
+        const apiBaseURL = "http://127.0.0.1:8000";
+
+        // Handle Create Footfall Data
+        document.getElementById('createForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const cameraID = document.getElementById('cameraID').value;
+            const zone = document.getElementById('zone').value;
+            const response = await fetch(`${apiBaseURL}/footfall/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cameraID: parseInt(cameraID), date: new Date(), zone, count: 0, footfalls: [] })
+            });
+            alert(await response.json().message);
+        };
+
+        // Handle Update Footfall Data
+        document.getElementById('updateForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const cameraID = document.getElementById('updateCameraID').value;
+            const response = await fetch(`${apiBaseURL}/footfall/update/${cameraID}`, { method: "PUT" });
+            alert(await response.json().message);
+        };
+
+        // Handle Add Footfall Data
+        document.getElementById('addForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const cameraID = document.getElementById('addCameraID').value;
+            const countToAdd = document.getElementById('countToAdd').value;
+            const response = await fetch(`${apiBaseURL}/footfall/add/${cameraID}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ count_to_add: parseInt(countToAdd) })
+            });
+            alert(await response.json().message);
+        };
+
+        // Handle Retrieve All Footfall Data
+        document.getElementById('getAllFootfalls').onclick = async () => {
+            const response = await fetch(`${apiBaseURL}/footfall/`);
+            const data = await response.json();
+            const footfallTableBody = document.getElementById('footfallData');
+            footfallTableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = `<tr>
+                    <td>${item.cameraID}</td>
+                    <td>${new Date(item.date).toLocaleDateString()}</td>
+                    <td>${item.zone}</td>
+                    <td>${item.count}</td>
+                    <td>${item.footfalls.join(', ')}</td>
+                </tr>`;
+                footfallTableBody.innerHTML += row;
+            });
+        };
+
+        // Handle Delete Footfall Data
+        document.getElementById('deleteForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const cameraID = document.getElementById('deleteCameraID').value;
+            const response = await fetch(`${apiBaseURL}/footfall/${cameraID}`, { method: "DELETE" });
+            alert(await response.json().message);
+        };
+
+        // Handle Get Footfall Count by Time Range
+        document.getElementById('countByTimeForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const queryDate = document.getElementById('queryDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const response = await fetch(`${apiBaseURL}/footfall/count_by_time_range/?query_date=${queryDate}&start_time=${startTime}&end_time=${endTime}`);
+            const data = await response.json();
+            const timeRangeTableBody = document.getElementById('timeRangeCount');
+            timeRangeTableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = `<tr>
+                    <td>${item.date}</td>
+                    <td>${item.start_time}</td>
+                    <td>${item.end_time}</td>
+                    <td>${item.count}</td>
+                </tr>`;
+                timeRangeTableBody.innerHTML += row;
+            });
+        };
+
+        // Handle Get Footfall Count by Date
+        document.getElementById('countByDateForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const queryDateForCount = document.getElementById('queryDateForCount').value;
+            const response = await fetch(`${apiBaseURL}/footfall/count_by_date/${queryDateForCount}`);
+            const data = await response.json();
+            const dateCountTableBody = document.getElementById('dateCount');
+            dateCountTableBody.innerHTML = '';
+            data.forEach(item => {
+                const row = `<tr>
+                    <td>${item.date}</td>
+                    <td>${item.count}</td>
+                </tr>`;
+                dateCountTableBody.innerHTML += row;
+            });
+        };
+    </script>
+</body>
+</html>
