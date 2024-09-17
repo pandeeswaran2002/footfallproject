@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>  
 <html lang="en">
 <head>
@@ -74,6 +75,11 @@
         }
     </style>
 </head>
+<head>
+    ...
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
 <body>
     <h1>Footfall Management</h1>
 
@@ -112,6 +118,10 @@
         <input type="number" id="deleteCameraID" required><br>
         <button type="submit">Delete Footfall</button>
     </form>
+    <!-- Bar Chart for Footfall Data -->
+<h2>Footfall Chart</h2>
+<canvas id="footfallChart" width="2" height="1"></canvas>
+
 
     <!-- Form to get footfall count by date -->
     <h2>Get Footfall Count by Date</h2>
@@ -182,6 +192,8 @@
 <script>
     const API_URL = "http://127.0.0.1:8000";
 
+
+
 // Function to handle form submissions
 document.getElementById("createFootfallForm").addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -196,6 +208,7 @@ document.getElementById("createFootfallForm").addEventListener("submit", async f
     document.getElementById("output").innerText = JSON.stringify(result, null, 2);
     fetchAllData();  // Refresh the data table
 });
+
 
 document.getElementById("updateFootfallForm").addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -271,20 +284,67 @@ document.getElementById("getCountByTimeRangeForm").addEventListener("submit", as
     table.style.display = 'block'; // Show the table
 });
 
-// Function to fetch all footfall data
-async function fetchAllData() {
-    const response = await fetch(`${API_URL}/footfall/`);
-    const data = await response.json();
+    // Function to fetch all footfall data
+    async function fetchAllData() {
+        const response = await fetch(`${API_URL}/footfall/`);
+        const data = await response.json();
 
-    const tableBody = document.getElementById("allDataTableBody");
-    tableBody.innerHTML = ''; // Clear existing data
+        const tableBody = document.getElementById("allDataTableBody");
+        tableBody.innerHTML = ''; // Clear existing data
 
-    data.forEach(footfall => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${footfall.cameraID}</td><td>${footfall.zone}</td><td>${footfall.date}</td><td>${footfall.count}</td><td>${footfall.footfalls.join(", ")}</td>`;
-        tableBody.appendChild(row);
-    });
-}
+        // Data for the bar chart
+        const cameraIDs = [];
+        const counts = [];
+
+        data.forEach(footfall => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${footfall.cameraID}</td><td>${footfall.zone}</td><td>${footfall.date}</td><td>${footfall.count}</td><td>${footfall.footfalls.join(", ")}</td>`;
+            tableBody.appendChild(row);
+
+            // Populate data for chart
+            cameraIDs.push(`Camera ${footfall.cameraID}`);
+            counts.push(footfall.count);
+        });
+
+        // Render the bar chart
+        renderBarChart(cameraIDs, counts);
+    }
+
+    // Function to render bar chart
+    function renderBarChart(labels, data) {
+        const ctx = document.getElementById('footfallChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Footfall Count',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Footfall Count'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Camera ID'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 
 // Fetch all data on page load
 fetchAllData();
@@ -292,4 +352,3 @@ fetchAllData();
 </script>
 </body>
 </html>
-
