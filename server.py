@@ -2,7 +2,7 @@ import http.server
 import socketserver
 
 
-PORT = 8001
+PORT = 8002
 
 DIRECTORY = "frontend"
 

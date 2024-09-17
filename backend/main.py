@@ -18,7 +18,7 @@ collection = db['footfall_collection']
 summary_collection = db['footfall_summary']  # New collection for summarized data
 
 origins = [
-    "http://127.0.0.1:8001",  # Frontend server URL
+    "http://127.0.0.1:8002",  # Frontend server URL
 ]
 
 app.add_middleware(
@@ -94,9 +94,6 @@ async def delete_footfall(cameraID: int):
         raise HTTPException(status_code=404, detail="Footfall data not found.")
     return {"message": "Footfall data deleted successfully."}
 
-
-
-
 @app.get("/footfall/count_by_date/")
 async def get_count_by_date(query_date: date):
     """
@@ -159,3 +156,4 @@ async def get_count_by_time_range(
         total_count += time_range_count
 
     return {"date": query_date, "time_range": f"{start_time}:00-{end_time}:00", "count": total_count}
+
