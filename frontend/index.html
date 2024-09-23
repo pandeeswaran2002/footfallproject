@@ -120,29 +120,30 @@
         <button type="submit">Delete Footfall</button>
     </form>
     <!-- Bar Chart for Footfall Data -->
-<h2>Footfall Count by CameraID Chart</h2>
-<canvas id="cameraIDFootfallChart"></canvas>
-
-<!-- Add this CSS for proper sizing -->
-<style>
-    #cameraIDfootfallChart {
-        width: 100%; /* Take up 100% of the available width */
-        max-width: 600px; /* Set a maximum width */
-        height: 400px; /* Set a fixed height */
-    }
-</style>
-<h2>Footfall Count by Date Chart</h2>
-<canvas id="dateFootfallChart"></canvas>
-
-<!-- Add this CSS for proper sizing -->
-<style>
-    #dateFootfallChart {
-        width: 100%; /* Take up 100% of the available width */
-        max-width: 600px; /* Set a maximum width */
-        height: 400px; /* Set a fixed height */
-    }
-</style>
-
+    <h2>Footfall Count by CameraID Chart</h2>
+    <canvas id="cameraIDFootfallChart"></canvas>
+    
+    <!-- Add this CSS for proper sizing -->
+    <style>
+        #cameraIDFootfallChart { /* Corrected ID */
+            width: 100%; /* Take up 100% of the available width */
+            max-width: 600px; /* Set a maximum width */
+            height: 400px; /* Set a fixed height */
+        }
+    </style>
+    <h2>Footfall Count by Date Chart</h2>
+    <canvas id="dateFootfallChart"></canvas>
+    
+    <!-- Add this CSS for proper sizing -->
+    <style>
+        #dateFootfallChart {
+            width: 100%; /* Take up 100% of the available width */
+            max-width: 600px; /* Set a maximum width */
+            height: 400px; /* Set a fixed height */
+        }
+    </style>
+    
+    
 
 
     <!-- Form to get footfall count by date -->
@@ -330,15 +331,15 @@ document.getElementById("getCountByTimeRangeForm").addEventListener("submit", as
         // Render the bar chart
         renderBarChart(cameraIDs, counts);
     }
-    // Function to render bar chart with adjusted space
+// Function to render bar chart with adjusted space
 function renderBarChart(labels, data) {
-    const ctx = document.getElementById('cameraIDfootfallChart').getContext('2d');
+    const ctx = document.getElementById('cameraIDFootfallChart').getContext('2d'); // Corrected ID
     new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Footfall Count by cameraID',
+                label: 'Footfall Count by CameraID',
                 data: data,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
