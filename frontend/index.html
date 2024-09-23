@@ -119,29 +119,27 @@
         <input type="number" id="deleteCameraID" required><br>
         <button type="submit">Delete Footfall</button>
     </form>
-    <!-- Bar Chart for Footfall Data -->
-    <h2>Footfall Count by CameraID Chart</h2>
-    <canvas id="cameraIDFootfallChart"></canvas>
-    
-    <!-- Add this CSS for proper sizing -->
-    <style>
-        #cameraIDFootfallChart { /* Corrected ID */
-            width: 100%; /* Take up 100% of the available width */
-            max-width: 600px; /* Set a maximum width */
-            height: 400px; /* Set a fixed height */
-        }
-    </style>
-    <h2>Footfall Count by Date Chart</h2>
-    <canvas id="dateFootfallChart"></canvas>
-    
-    <!-- Add this CSS for proper sizing -->
-    <style>
-        #dateFootfallChart {
-            width: 100%; /* Take up 100% of the available width */
-            max-width: 600px; /* Set a maximum width */
-            height: 400px; /* Set a fixed height */
-        }
-    </style>
+    <h2>Footfall Count by Camera ID Chart</h2>
+<canvas id="cameraIDFootfallChart"></canvas>
+
+<h2>Footfall Count by Date Chart</h2>
+<canvas id="dateFootfallChart"></canvas>
+
+<!-- Buttons to choose chart type -->
+<button onclick="showCameraIDChart()">Show Camera ID Chart</button>
+<button onclick="showDateChart()">Show Date Chart</button>
+
+<!-- Add CSS for proper sizing -->
+<style>
+   #cameraIDFootfallChart, #dateFootfallChart {
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+}
+
+
+</style>
+
     
     
 
@@ -306,46 +304,67 @@ document.getElementById("getCountByTimeRangeForm").addEventListener("submit", as
 
     table.style.display = 'block'; // Show the table
 });
- // Function to fetch all footfall data
- async function fetchAllData() {
-        const response = await fetch(`${API_URL}/footfall/`);
-        const data = await response.json();
+// Function to fetch all footfall data
+async function fetchAllData() {
+    const response = await fetch(`${API_URL}/footfall/`);
+    const data = await response.json();
 
-        const tableBody = document.getElementById("allDataTableBody");
-        tableBody.innerHTML = ''; // Clear existing data
+    const tableBody = document.getElementById("allDataTableBody");
+    tableBody.innerHTML = ''; // Clear existing data
 
-        // Data for the bar chart
-        const cameraIDs = [];
-        const counts = [];
+    // Data for the camera ID chart
+    const cameraIDs = [];
+    const counts = [];
 
-        data.forEach(footfall => {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${footfall.cameraID}</td><td>${footfall.zone}</td><td>${footfall.date}</td><td>${footfall.count}</td><td>${footfall.footfalls.join(", ")}</td>`;
-            tableBody.appendChild(row);
+    // Object to store aggregated counts by individual dates
+    const footfallByDate = {};
 
-            // Populate data for chart
-            cameraIDs.push(`Camera ${footfall.cameraID}`);
-            counts.push(footfall.count);
+    data.forEach(footfall => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${footfall.cameraID}</td><td>${footfall.zone}</td><td>${footfall.date}</td><td>${footfall.count}</td><td>${footfall.footfalls.join(", ")}</td>`;
+        tableBody.appendChild(row);
+
+        // Populate data for camera ID chart
+        cameraIDs.push(`Camera ${footfall.cameraID}`);
+        counts.push(footfall.count);
+
+        // Process the footfalls array and group by date
+        footfall.footfalls.forEach(footfallEntry => {
+            const date = new Date(footfallEntry).toISOString().split('T')[0]; // Extract date
+
+            // Aggregate footfall counts by date
+            if (footfallByDate[date]) {
+                footfallByDate[date] += 1; // Increment count for the date
+            } else {
+                footfallByDate[date] = 1; // Initialize count for the date
+            }
         });
+    });
 
-        // Render the bar chart
-        renderBarChart(cameraIDs, counts);
-    }
-// Function to render bar chart with adjusted space
-function renderBarChart(labels, data) {
-    const ctx = document.getElementById('cameraIDFootfallChart').getContext('2d'); // Corrected ID
+    // Prepare data for date chart
+    const dates = Object.keys(footfallByDate);
+    const dateCounts = Object.values(footfallByDate);
+
+    // Render both charts
+    renderBarChart(cameraIDs, counts, 'cameraIDFootfallChart', 'Footfall Count by CameraID');
+    renderBarChart(dates, dateCounts, 'dateFootfallChart', 'Footfall Count by Date');
+}
+
+// Function to render bar chart
+function renderBarChart(labels, data, chartId, label) {
+    const ctx = document.getElementById(chartId).getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Footfall Count by CameraID',
+                label: label,
                 data: data,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
-                barThickness: 30,  // Set the thickness of each bar
-                maxBarThickness: 40 // Set a maximum thickness for bars
+                barThickness: 30,
+                maxBarThickness: 40
             }]
         },
         options: {
@@ -368,102 +387,32 @@ function renderBarChart(labels, data) {
                 x: {
                     title: {
                         display: true,
-                        text: 'Camera ID'
+                        text: chartId === 'cameraIDFootfallChart' ? 'Camera ID' : 'Date'
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10
                     }
                 }
             },
             plugins: {
                 legend: {
-                    display: false // Hide the legend to save space
-                }
-            }
-        }
-    });
-}
-// Function to fetch all footfall data and aggregate by individual footfall dates
-async function fetchAllData() {
-    const response = await fetch(`${API_URL}/footfall/`);
-    const data = await response.json();
-
-    const tableBody = document.getElementById("allDataTableBody");
-    tableBody.innerHTML = ''; // Clear existing data
-
-    // Object to store aggregated counts by individual dates
-    const footfallByDate = {};
-
-    data.forEach(footfall => {
-        // Add row to the table
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${footfall.cameraID}</td><td>${footfall.zone}</td><td>${footfall.date}</td><td>${footfall.count}</td><td>${footfall.footfalls.join(", ")}</td>`;
-        tableBody.appendChild(row);
-
-        // Process the footfalls array and group by date
-        footfall.footfalls.forEach(footfallEntry => {
-            const date = new Date(footfallEntry).toISOString().split('T')[0]; // Extract only the date part
-
-            // Aggregate footfall counts by date
-            if (footfallByDate[date]) {
-                footfallByDate[date] += 1; // Increment count for the date
-            } else {
-                footfallByDate[date] = 1; // Initialize count for the date
-            }
-        });
-    });
-
-    // Prepare data for chart
-    const dates = Object.keys(footfallByDate);
-    const counts = Object.values(footfallByDate);
-
-    // Render the chart with the counts grouped by individual dates
-    renderDateChart(dates, counts);
-}
-// Function to render bar chart for footfall counts by individual dates
-function renderDateChart(labels, data) {
-    const ctx = document.getElementById('dateFootfallChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar', // or 'line' based on your preference
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Footfall Count by Date',
-                data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Footfall Count'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    },
-                    ticks: {
-                        autoSkip: true,
-                        maxTicksLimit: 10 // Limit number of ticks displayed
-                    }
+                    display: false
                 }
             }
         }
     });
 }
 
-
-
-
-
-    
-
-// Fetch all data on page load
+// Fetch data on page load
 fetchAllData();
+
+
+
+
+
+
+
 
 </script>
 </body>
