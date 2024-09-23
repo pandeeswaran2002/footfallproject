@@ -139,6 +139,22 @@
 
 
 </style>
+<h2>Footfall Count by Time Range</h2>
+<input type="date" id="queryDate" />
+<input type="number" id="startTime" placeholder="Start Hour (0-23)" min="0" max="23" />
+<input type="number" id="endTime" placeholder="End Hour (0-23)" min="0" max="23" />
+<button id="fetchTimeRangeData">Get Count</button>
+
+<canvas id="timeRangeFootfallChart"></canvas>
+
+<style>
+    #timeRangeFootfallChart {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+    }
+</style>
+
 
     
     
@@ -403,6 +419,66 @@ function renderBarChart(labels, data, chartId, label) {
         }
     });
 }
+document.getElementById("fetchTimeRangeData").addEventListener("click", async () => {
+    const queryDate = document.getElementById("queryDate").value;
+    const startTime = parseInt(document.getElementById("startTime").value);
+    const endTime = parseInt(document.getElementById("endTime").value);
+
+    if (!queryDate || isNaN(startTime) || isNaN(endTime)) {
+        alert("Please provide valid date and time range.");
+        return;
+    }
+
+    const response = await fetch(`${API_URL}/footfall/count_by_time_range/?query_date=${queryDate}&start_time=${startTime}&end_time=${endTime}`);
+    const data = await response.json();
+
+    // Assuming the response contains the count for each hour in the range
+    const labels = [];
+    const counts = [];
+    for (let hour = startTime; hour < endTime; hour++) {
+        labels.push(`${hour}:00`);
+        counts.push(data.count); // You might need to adjust how you extract counts from data
+    }
+
+    renderTimeRangeChart(labels, counts);
+});
+
+// Function to render the time range chart
+function renderTimeRangeChart(labels, data) {
+    const ctx = document.getElementById('timeRangeFootfallChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Footfall Count by Time Range',
+                data: data,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                barThickness: 30
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Footfall Count'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time (Hour)'
+                    }
+                }
+            }
+        }
+    });
+}
+
 
 // Fetch data on page load
 fetchAllData();
